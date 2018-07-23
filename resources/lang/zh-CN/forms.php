@@ -152,7 +152,7 @@ return [
             'site-url'                              => '站点地址（URL）',
             'display-graphs'                        => '在状态页上显示图表',
             'about-this-page'                       => '关于本页',
-            'days-of-incidents'                     => '显示多少天的故障？',
+            'days-of-incidents'                     => '每页最多显示故障天数',
             'time_before_refresh'                   => '状态页刷新速度（秒）',
             'major_outage_rate'                     => 'Major outage threshold (in %)',
             'banner'                                => '横幅图像',
