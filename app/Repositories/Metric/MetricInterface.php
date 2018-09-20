@@ -24,7 +24,7 @@ interface MetricInterface
      *
      * @return int
      */
-    public function getPointsLastHour(Metric $metric, $hour, $minute);
+    public function getPointsLastHour(Metric $metric, $minutes);
 
     /**
      * Returns metrics for a given hour.
