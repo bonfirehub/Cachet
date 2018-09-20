@@ -41,7 +41,7 @@ class SqliteRepository extends AbstractMetricRepository implements MetricInterfa
             $queryType = "sum($metricPointsTableName.value * $metricPointsTableName.counter)";
         }
 
-        $value = 0;
+        $value = NULL;
         $query = DB::select("select {$queryType} as value FROM {$this->getTableName()} m JOIN $metricPointsTableName ON $metricPointsTableName.metric_id = m.id WHERE m.id = :metricId AND strftime('%Y%m%d%H%M', $metricPointsTableName.created_at) = :timeInterval GROUP BY strftime('%H%M', $metricPointsTableName.created_at)", [
             'metricId'     => $metric->id,
             'timeInterval' => $dateTime->format('YmdHi'),
@@ -51,8 +51,8 @@ class SqliteRepository extends AbstractMetricRepository implements MetricInterfa
             $value = $query[0]->value;
         }
 
-        if ($value === 0 && $metric->default_value != $value) {
-            return $metric->default_value;
+        if (is_null($value)) {
+            return NULL;
         }
 
         return round($value, $metric->places);
@@ -80,7 +80,7 @@ class SqliteRepository extends AbstractMetricRepository implements MetricInterfa
             $queryType = "sum($metricPointsTableName.value * $metricPointsTableName.counter)";
         }
 
-        $value = 0;
+        $value = NULL;
         $query = DB::select("select {$queryType} as value FROM {$this->getTableName()} m JOIN $metricPointsTableName ON $metricPointsTableName.metric_id = m.id WHERE m.id = :metricId AND strftime('%Y%m%d%H', $metricPointsTableName.created_at) = :timeInterval GROUP BY strftime('%H', $metricPointsTableName.created_at)", [
             'metricId'     => $metric->id,
             'timeInterval' => $dateTime->format('YmdH'),
@@ -90,8 +90,8 @@ class SqliteRepository extends AbstractMetricRepository implements MetricInterfa
             $value = $query[0]->value;
         }
 
-        if ($value === 0 && $metric->default_value != $value) {
-            return $metric->default_value;
+        if (is_null($value)) {
+            return NULL;
         }
 
         return round($value, $metric->places);
@@ -118,7 +118,7 @@ class SqliteRepository extends AbstractMetricRepository implements MetricInterfa
             $queryType = "sum($metricPointsTableName.value * $metricPointsTableName.counter)";
         }
 
-        $value = 0;
+        $value = NULL;
         $query = DB::select("select {$queryType} as value FROM {$this->getTableName()} m JOIN $metricPointsTableName ON $metricPointsTableName.metric_id = m.id WHERE m.id = :metricId AND $metricPointsTableName.created_at > date('now', '-7 day') AND strftime('%Y%m%d', $metricPointsTableName.created_at) = :timeInterval GROUP BY strftime('%Y%m%d', $metricPointsTableName.created_at)", [
             'metricId'     => $metric->id,
             'timeInterval' => $dateTime->format('Ymd'),
@@ -128,8 +128,8 @@ class SqliteRepository extends AbstractMetricRepository implements MetricInterfa
             $value = $query[0]->value;
         }
 
-        if ($value === 0 && $metric->default_value != $value) {
-            return $metric->default_value;
+        if (is_null($value)) {
+            return NULL;
         }
 
         return round($value, $metric->places);

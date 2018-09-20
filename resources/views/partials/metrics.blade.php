@@ -87,7 +87,9 @@
                         pointBackgroundColor: "{{ color_darken($theme_metrics, -0.1) }}",
                         pointBorderColor: "{{ color_darken($theme_metrics, -0.1) }}",
                         pointHoverBackgroundColor: "{{ color_darken($theme_metrics, -0.2) }}",
-                        pointHoverBorderColor: "{{ color_darken($theme_metrics, -0.2) }}"
+                        pointHoverBorderColor: "{{ color_darken($theme_metrics, -0.2) }}",
+                        spanGaps: true,
+                        fill: false
                     }]
                 },
                 options: {
