@@ -55,17 +55,13 @@ class MetricRepository
     public function listPointsLastHour(Metric $metric)
     {
         $dateTime = $this->dates->make();
-
-        $points = [];
-
         $pointKey = $dateTime->format('H:i');
+        $nrOfMinutes = 61;
+        $points = $this->repository->getPointsLastHour($metric, $nrOfMinutes + $metric->threshold)->pluck('value', 'key')->take(-$nrOfMinutes);
 
-        for ($i = 0; $i <= 60; $i++) {
-            $points[$pointKey] = $this->repository->getPointsLastHour($metric, 0, $i);
-            $pointKey = $dateTime->sub(new DateInterval('PT1M'))->format('H:i');
-        }
-
-        return array_reverse($points);
+        return $points->sortBy(function ($point, $key) {
+            return $key;
+        });
     }
 
     /**

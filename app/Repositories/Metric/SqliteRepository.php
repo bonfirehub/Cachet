@@ -15,6 +15,7 @@ use CachetHQ\Cachet\Models\Metric;
 use DateInterval;
 use Illuminate\Support\Facades\DB;
 use Jenssegers\Date\Date;
+use Illuminate\Support\Collection;
 
 class SqliteRepository extends AbstractMetricRepository implements MetricInterface
 {
@@ -27,35 +28,35 @@ class SqliteRepository extends AbstractMetricRepository implements MetricInterfa
      *
      * @return int
      */
-    public function getPointsLastHour(Metric $metric, $hour, $minute)
+    public function getPointsLastHour(Metric $metric, $minutes)
     {
-        $dateTime = (new Date())->sub(new DateInterval('PT'.$hour.'H'))->sub(new DateInterval('PT'.$minute.'M'));
         $metricPointsTableName = $this->getMetricPointsTableName();
 
         // Default metrics calculations.
         if (!isset($metric->calc_type) || $metric->calc_type == Metric::CALC_SUM) {
             $queryType = "sum($metricPointsTableName.value * $metricPointsTableName.counter)";
         } elseif ($metric->calc_type == Metric::CALC_AVG) {
-            $queryType = "avg($metricPointsTableName.value * $metricPointsTableName.counter)";
+            $queryType = "avg($metricPointsTableName.value)";
         } else {
             $queryType = "sum($metricPointsTableName.value * $metricPointsTableName.counter)";
         }
 
-        $value = NULL;
-        $query = DB::select("select {$queryType} as value FROM {$this->getTableName()} m JOIN $metricPointsTableName ON $metricPointsTableName.metric_id = m.id WHERE m.id = :metricId AND strftime('%Y%m%d%H%M', $metricPointsTableName.created_at) = :timeInterval GROUP BY strftime('%H%M', $metricPointsTableName.created_at)", [
-            'metricId'     => $metric->id,
-            'timeInterval' => $dateTime->format('YmdHi'),
-        ]);
+        $points = DB::select("select strftime('%H:%M', {$metricPointsTableName}.created_at) AS key, ".
+                             "{$queryType} as value FROM {$this->getTableName()} m JOIN $metricPointsTableName ON ".
+                             "$metricPointsTableName.metric_id = m.id WHERE m.id = :metricId ".
+                             "AND strftime('%Y%m%d%H%M', {$metricPointsTableName}.created_at) >= strftime('%Y%m%d%H%M',datetime('now', 'localtime', '-{$minutes} minutes')) ".
+                             "GROUP BY strftime('%H%M', {$metricPointsTableName}.created_at) ".
+                             "ORDER BY {$metricPointsTableName}.created_at", [
+                             'metricId'     => $metric->id]);
 
-        if (isset($query[0])) {
-            $value = $query[0]->value;
-        }
-
-        if (is_null($value)) {
-            return NULL;
-        }
-
-        return round($value, $metric->places);
+        $results = Collection::make($points);
+        return $results->map(function ($point) use ($metric) {
+            if (!$point->value) {
+                $point->value = NULL;
+            }
+            $point->value = round($point->value, $metric->places);
+            return $point;
+        });
     }
 
     /**
