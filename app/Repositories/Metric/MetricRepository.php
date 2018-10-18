@@ -54,10 +54,13 @@ class MetricRepository
      */
     public function listPointsLastHour(Metric $metric)
     {
-        $dateTime = $this->dates->make();
-        $pointKey = $dateTime->format('H:i');
         $nrOfMinutes = 61;
         $points = $this->repository->getPointsLastHour($metric, $nrOfMinutes + $metric->threshold)->pluck('value', 'key')->take(-$nrOfMinutes);
+        foreach($points as $key => $value)
+        {
+            $points[$this->dates->make($key)->format('H:i')] = $value;
+            unset($points[$key]);
+        }
 
         return $points->sortBy(function ($point, $key) {
             return $key;
